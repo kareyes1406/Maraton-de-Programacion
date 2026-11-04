@@ -74,7 +74,7 @@ def documento_arquitectura():
         "reales de OSRM. La seguridad se basa en OAuth 2.0 (código de autorización con PKCE y credenciales de cliente) con "
         "tokens JWT RS256, y un registro de auditoría encadenado con SHA-256 permite reconstruir y reproducir cada ruta con "
         "sus parámetros. Se discuten las consideraciones éticas para evitar la estigmatización de las comunidades y las "
-        "limitaciones del modelo con datos simulados. Veintisiete pruebas automatizadas verifican los modelos, el algoritmo, "
+        "limitaciones del modelo con datos simulados. Treinta pruebas automatizadas verifican los modelos, el algoritmo, "
         "la autenticación y la integridad de la auditoría.",
         "Aprendizaje automático, auditoría, ética algorítmica, microservicios, OAuth 2.0, problema del viajante, salud rural, sistemas de apoyo a la decisión.",
     )
@@ -113,7 +113,7 @@ def documento_arquitectura():
         ["Auditoría reconstruible", "Registro encadenado SHA-256 con parámetros, entradas y resultado; reproducción", "Cumple"],
         ["Consideraciones éticas y limitaciones", "Secciones VIII y IX; documento de uso de IA", "Cumple"],
         ["Microservicios y múltiples APIs", "auth-service + rutas-service; Esri/DANE, Gobernación, OSRM, OSM", "Cumple"],
-        ["PostgreSQL / Redis", "SQLite en la demo; esquema PostgreSQL y reemplazo por Redis definidos", "Parcial"],
+        ["PostgreSQL / Redis", "PostgreSQL gestionado en la nube (auditoría y caché); SQLite en local", "Cumple"],
         ["Nube con CI/CD", "GitHub Actions (pruebas + auditoría de dependencias) y blueprint de Render con HTTPS", "Listo"],
     ], [1.05, 1.85, 0.5])
     d.parrafo(
@@ -197,12 +197,15 @@ def documento_arquitectura():
         "modifica un registro, el endpoint de verificación detecta el primer registro alterado."
     )
     d.parrafo(
-        ("Decisión sobre el motor. ", "i"),
-        "La especificación del ciclo sugiere PostgreSQL, MongoDB y Redis. Para la demostración se eligió SQLite porque no "
-        "requiere instalación (los equipos de la sede no tenían Docker ni PostgreSQL) y la carga es baja. Para producción se "
-        "dejó el script ", ("rutas_service/db/schema_postgres.sql", "c"), ": tipos JSONB, TIMESTAMPTZ e INET, índices por "
-        "evento y usuario, un trigger de inmutabilidad y un rol de aplicación sin permisos UPDATE/DELETE. La tabla cache se "
-        "reemplaza por Redis con expiración nativa (SET … EX)."
+        ("Motor de base de datos. ", "i"),
+        "La capa db.py usa PostgreSQL cuando existe la variable DATABASE_URL (despliegue en la nube) y SQLite en local, "
+        "con consultas siempre parametrizadas. En la nube, Render aprovisiona un PostgreSQL gestionado en la misma red "
+        "privada que el servicio y sin acceso desde internet (lista de IP vacía); la cadena de conexión se inyecta como "
+        "variable de entorno. El esquema (", ("rutas_service/db/schema_postgres.sql", "c"), ") guarda los campos JSON como "
+        "TEXT a propósito: el hash se calcula sobre el texto canónico, y JSONB lo normalizaría rompiendo la verificación. "
+        "Un trigger por sentencia bloquea UPDATE, DELETE y TRUNCATE, y cada escritura toma un bloqueo de tabla para que "
+        "dos instancias no encadenen registros al mismo anterior. La caché de APIs externas usa la misma base con "
+        "expiración (función equivalente a Redis). Tres pruebas verifican este comportamiento contra un PostgreSQL 16 real."
     )
 
     d.figura(FIG / "fig3_modelo_datos.png",
@@ -348,15 +351,16 @@ def documento_arquitectura():
         "OSRM no considera estado de la vía, clima, derrumbes, tramos a pie o fluviales, ni el tipo de vehículo; además, el "
         "servidor público de demostración no es apto para producción.",
         "Modela un solo equipo, una jornada de 8 h y tiempo de atención uniforme; no considera ventanas horarias ni capacidad.",
-        "Los códigos de autorización y los contadores de intentos están en memoria (no distribuidos); SQLite limita la concurrencia.",
+        "Los códigos de autorización y los contadores de intentos están en memoria (no distribuidos); la base gratuita de PostgreSQL tiene capacidad y vigencia limitadas.",
     ])
 
     # ---------------------------------------------------------------- X
     d.seccion("Pruebas y resultados")
-    d.tabla("Pruebas automatizadas (pytest, 27/27 aprobadas)", ["Grupo", "N.º", "Qué verifican"], [
+    d.tabla("Pruebas automatizadas (pytest, 30/30 aprobadas)", ["Grupo", "N.º", "Qué verifican"], [
         ["Algoritmo", "6", "Selección de N, retorno a base, determinismo, extremos de α, cercanía al óptimo, equidad, jornada"],
         ["OAuth 2.0", "6", "Flujo PKCE, verificador incorrecto, código de un solo uso, redirect URI, bloqueo, client credentials, JWKS"],
         ["Modelo de ML", "4", "Métricas, superioridad sobre la fórmula, rango, determinismo, monotonía"],
+        ["PostgreSQL", "3", "Cadena de hashes, bloqueo de UPDATE/DELETE/TRUNCATE y caché sobre PostgreSQL 16"],
         ["Producción", "3", "HTTPS obligatorio, credenciales demo deshabilitadas, contraseña mínima"],
         ["API y seguridad", "8", "401/403, llave ajena, expiración, alg none, validación 422, auditoría, reproducción, alteración"],
     ], [0.75, 0.3, 2.35])
@@ -395,7 +399,7 @@ def documento_arquitectura():
         "heurístico transparente decide la ruta, de modo que cada elección sigue siendo explicable en un contexto de salud. Como trabajo futuro se "
         "propone construir el índice con fuentes oficiales (CNPV 2018, SISBÉN, RIPS), validarlo con la Secretaría de Salud y "
         "las comunidades, extender el modelo a varios equipos con ventanas de tiempo (VRPTW), desplegar con TLS en la nube "
-        "y migrar a PostgreSQL y Redis, en coherencia con la formación para la vida del MEDIT ", r("medit"), "."
+        "y agregar Redis para escalar la caché, en coherencia con la formación para la vida del MEDIT ", r("medit"), "."
     )
     d.referencias([REFS_COMUNES[c] for c in orden])
     d.guardar(DOCS / "Documento_Arquitectura_IEEE.docx")

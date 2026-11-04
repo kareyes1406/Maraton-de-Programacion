@@ -1,28 +1,21 @@
-"""Cache persistente simple (SQLite) para respuestas de APIs externas.
+"""Cache persistente de respuestas de APIs externas (tabla `cache` en SQLite o PostgreSQL).
 
 Permite que la demo siga funcionando sin internet una vez consultado un municipio
-(misma funcion que cumpliria Redis en un despliegue productivo).
+(misma funcion que cumpliria Redis en un despliegue de mayor escala).
 """
 import json
-import sqlite3
 import threading
 import time
+from contextlib import closing
 
-from . import config
+from . import db
 
 _lock = threading.Lock()
 
 
-def _conn():
-    config.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    c = sqlite3.connect(config.DB_PATH)
-    c.execute("CREATE TABLE IF NOT EXISTS cache (k TEXT PRIMARY KEY, v TEXT NOT NULL, exp REAL NOT NULL)")
-    return c
-
-
 def get(key: str, permitir_expirado: bool = False):
-    with _lock, _conn() as c:
-        row = c.execute("SELECT v, exp FROM cache WHERE k=?", (key,)).fetchone()
+    with _lock, closing(db.conectar()) as c, c:
+        row = c.execute(db.sql("SELECT v, exp FROM cache WHERE k=?"), (key,)).fetchone()
     if not row:
         return None
     if row[1] < time.time() and not permitir_expirado:
@@ -31,8 +24,9 @@ def get(key: str, permitir_expirado: bool = False):
 
 
 def set(key: str, value, ttl: int):
-    with _lock, _conn() as c:
+    with _lock, closing(db.conectar()) as c, c:
         c.execute(
-            "INSERT OR REPLACE INTO cache (k, v, exp) VALUES (?,?,?)",
+            db.sql("INSERT INTO cache (k, v, exp) VALUES (?,?,?) "
+                   "ON CONFLICT (k) DO UPDATE SET v = excluded.v, exp = excluded.exp"),
             (key, json.dumps(value, ensure_ascii=False), time.time() + ttl),
         )

@@ -8,7 +8,7 @@ from pathlib import Path
 # las pruebas sean deterministas; test_produccion.py las activa explicitamente cuando las necesita.
 for _k in list(os.environ):
     if _k.startswith(("AUTH_PASSWORD_", "AUTH_SECRET_", "AUTH_PRIVATE_KEY")) or _k in (
-            "ENTORNO", "FRONTEND_URL", "ALLOWED_ORIGINS", "PUBLIC_URL", "RENDER_EXTERNAL_URL"):
+            "ENTORNO", "DATABASE_URL", "FRONTEND_URL", "ALLOWED_ORIGINS", "PUBLIC_URL", "RENDER_EXTERNAL_URL"):
         del os.environ[_k]
 _TMP = Path(tempfile.mkdtemp(prefix="rutas_test_"))
 os.environ["RUTAS_DB"] = str(_TMP / "test.db")

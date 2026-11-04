@@ -8,11 +8,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
 import threading
+from contextlib import closing, contextmanager
 from datetime import datetime, timedelta, timezone
 
-from . import config
+from . import db
 
 _lock = threading.Lock()
 GENESIS = "0" * 64
@@ -20,22 +20,11 @@ CAMPOS = ("id", "ts", "evento", "sub", "client_id", "roles", "ip", "parametros",
           "entradas", "resultado", "hash_anterior", "hash")
 
 
+@contextmanager
 def _conn():
-    config.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    c = sqlite3.connect(config.DB_PATH)
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS auditoria (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ts TEXT NOT NULL, evento TEXT NOT NULL, sub TEXT, client_id TEXT, roles TEXT, ip TEXT,
-            parametros TEXT, entradas_hash TEXT, entradas TEXT, resultado TEXT,
-            hash_anterior TEXT NOT NULL, hash TEXT NOT NULL)"""
-    )
-    # la tabla es solo-anexar: se bloquean UPDATE y DELETE a nivel de base de datos
-    c.execute("""CREATE TRIGGER IF NOT EXISTS aud_no_update BEFORE UPDATE ON auditoria
-                 BEGIN SELECT RAISE(ABORT, 'auditoria es solo-anexar'); END""")
-    c.execute("""CREATE TRIGGER IF NOT EXISTS aud_no_delete BEFORE DELETE ON auditoria
-                 BEGIN SELECT RAISE(ABORT, 'auditoria es solo-anexar'); END""")
-    return c
+    """Transaccion sobre SQLite o PostgreSQL (la tabla y sus triggers solo-anexar los crea db.py)."""
+    with closing(db.conectar()) as c, c:
+        yield c
 
 
 def _canon(obj) -> str:
@@ -50,6 +39,9 @@ def _hash_registro(r: dict) -> str:
 def registrar(evento: str, usuario: dict | None, ip: str | None, parametros=None, entradas=None, resultado=None) -> int:
     usuario = usuario or {}
     with _lock, _conn() as c:
+        if db.ES_POSTGRES:
+            # serializa la escritura entre instancias: dos registros no pueden encadenarse al mismo anterior
+            c.execute("LOCK TABLE auditoria IN SHARE ROW EXCLUSIVE MODE")
         fila = c.execute("SELECT hash FROM auditoria ORDER BY id DESC LIMIT 1").fetchone()
         r = {
             "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -66,10 +58,11 @@ def registrar(evento: str, usuario: dict | None, ip: str | None, parametros=None
         }
         r["hash"] = _hash_registro(r)
         cur = c.execute(
-            f"INSERT INTO auditoria ({','.join(CAMPOS[1:])}) VALUES ({','.join('?' * (len(CAMPOS) - 1))})",
+            db.sql(f"INSERT INTO auditoria ({','.join(CAMPOS[1:])}) VALUES ({','.join('?' * (len(CAMPOS) - 1))})"
+                   + (" RETURNING id" if db.ES_POSTGRES else "")),
             tuple(r[k] for k in CAMPOS[1:]),
         )
-        return cur.lastrowid
+        return cur.fetchone()[0] if db.ES_POSTGRES else cur.lastrowid
 
 
 def _fila_a_dict(fila, completo: bool) -> dict:
@@ -95,12 +88,12 @@ def listar(limite: int = 50, evento: str | None = None) -> list[dict]:
     q += " ORDER BY id DESC LIMIT ?"
     args.append(limite)
     with _conn() as c:
-        return [_fila_a_dict(f, completo=False) for f in c.execute(q, args).fetchall()]
+        return [_fila_a_dict(f, completo=False) for f in c.execute(db.sql(q), args).fetchall()]
 
 
 def obtener(id_: int) -> dict | None:
     with _conn() as c:
-        f = c.execute(f"SELECT {','.join(CAMPOS)} FROM auditoria WHERE id=?", (id_,)).fetchone()
+        f = c.execute(db.sql(f"SELECT {','.join(CAMPOS)} FROM auditoria WHERE id=?"), (id_,)).fetchone()
     return _fila_a_dict(f, completo=True) if f else None
 
 
@@ -122,7 +115,7 @@ def visitas_recientes(dias: int = 30) -> dict:
     conteo: dict[str, int] = {}
     with _conn() as c:
         for (res,) in c.execute(
-            "SELECT resultado FROM auditoria WHERE evento='RUTA_GENERADA' AND ts>=?", (desde,)
+            db.sql("SELECT resultado FROM auditoria WHERE evento='RUTA_GENERADA' AND ts>=?"), (desde,)
         ):
             for p in json.loads(res or "{}").get("orden_visita", []):
                 conteo[p["codigo"]] = conteo.get(p["codigo"], 0) + 1

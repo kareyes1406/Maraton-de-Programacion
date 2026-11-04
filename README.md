@@ -77,9 +77,12 @@ Seguridad en producción (`ENTORNO=produccion`):
 - Llave RSA generada al iniciar (o fija con `AUTH_PRIVATE_KEY_PEM`); el rutas-service recarga el JWKS al cambiar.
 - Tokens JWT RS256 de 15 min, PKCE obligatorio, CORS y redirect URIs limitados a la URL pública del frontend.
 
-Limitación de la capa gratuita: el disco es efímero (la auditoría SQLite se reinicia con cada despliegue) y los
-servicios se suspenden tras 15 min sin uso (la primera petición tarda ~1 min). Para producción real: PostgreSQL
-(`rutas_service/db/schema_postgres.sql`) y plan pago.
+Base de datos: el blueprint crea un **PostgreSQL gestionado** (`maraton-rutas-db`) sin acceso desde internet y le
+pasa la conexión al servicio como `DATABASE_URL`; la auditoría y la caché persisten entre despliegues. En local, sin
+`DATABASE_URL`, se usa SQLite. Pruebas contra PostgreSQL: `PG_TEST_URL=postgresql://... pytest tests/test_postgres.py`.
+
+Limitación de la capa gratuita: los servicios se suspenden tras 15 min sin uso (la primera petición tarda ~1 min)
+y la base PostgreSQL gratuita tiene vigencia limitada.
 
 ## Fuentes de datos
 - Veredas de Colombia — Esri Colombia Datos Abiertos (base DANE/POT)

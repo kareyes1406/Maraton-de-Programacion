@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
-from . import auditoria, config, fuentes, optimizador, vulnerabilidad
+from . import auditoria, config, db, fuentes, optimizador, vulnerabilidad
 from .ml import modelos
 from .seguridad import limitar, requiere
 
@@ -67,7 +67,8 @@ def _fuente(fn, *args):
 # ------------------------------------------------------------------ publicos
 @app.get("/health")
 def health():
-    return {"status": "ok", "servicio": "rutas-service", "datos_vulnerabilidad": vulnerabilidad.version_datos()}
+    return {"status": "ok", "servicio": "rutas-service", "base_datos": db.MOTOR,
+            "datos_vulnerabilidad": vulnerabilidad.version_datos()}
 
 
 @app.get("/api/config")

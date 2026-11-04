@@ -46,3 +46,16 @@ services:
         value: produccion
       - key: AUTH_URL
         value: https://maraton-rutas-auth.onrender.com
+      # Conexion interna a PostgreSQL: Render la inyecta, nadie copia la contrasena
+      - key: DATABASE_URL
+        fromDatabase:
+          name: maraton-rutas-db
+          property: connectionString
+
+databases:
+  - name: maraton-rutas-db
+    plan: free
+    region: oregon
+    databaseName: rutas
+    user: rutas
+    ipAllowList: []   # sin acceso desde internet: solo los servicios de la red privada de Render
