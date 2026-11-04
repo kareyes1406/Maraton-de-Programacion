@@ -7,7 +7,8 @@ services:
     runtime: python
     plan: free
     region: oregon
-    buildCommand: pip install -r requirements.txt
+    # CI integrado en el despliegue: si alguna prueba falla, Render no publica la nueva version
+    buildCommand: pip install -r requirements.txt && python -m pytest -q
     startCommand: uvicorn auth_service.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
     healthCheckPath: /health
     autoDeploy: true
@@ -33,7 +34,8 @@ services:
     runtime: python
     plan: free
     region: oregon
-    buildCommand: pip install -r requirements.txt
+    # CI integrado en el despliegue: si alguna prueba falla, Render no publica la nueva version
+    buildCommand: pip install -r requirements.txt && python -m pytest -q
     startCommand: uvicorn rutas_service.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
     healthCheckPath: /health
     autoDeploy: true
