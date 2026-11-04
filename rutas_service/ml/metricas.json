@@ -1,0 +1,126 @@
+{
+  "version": "ml-2026-11-04",
+  "datos": {
+    "veredas": 2584,
+    "entrenamiento": 2067,
+    "prueba": 517,
+    "caracteristicas": [
+      "nbi",
+      "adultos_mayores",
+      "barrera_vial",
+      "sin_atencion_reciente",
+      "cronicos"
+    ],
+    "objetivo": "necesidad de atención SINTÉTICA (interacciones no lineales + ruido); reemplazable por datos oficiales"
+  },
+  "modelo_elegido": "Gradient Boosting",
+  "criterio_seleccion": "mayor R2 medio en validación cruzada de 5 pliegues",
+  "comparacion": {
+    "Regresión lineal": {
+      "r2_cv_media": 0.926,
+      "r2_cv_desv": 0.0056,
+      "r2_prueba": 0.9332,
+      "mae_prueba": 0.0331,
+      "rmse_prueba": 0.0412
+    },
+    "Random Forest": {
+      "r2_cv_media": 0.9031,
+      "r2_cv_desv": 0.0127,
+      "r2_prueba": 0.9153,
+      "mae_prueba": 0.0363,
+      "rmse_prueba": 0.0465
+    },
+    "Gradient Boosting": {
+      "r2_cv_media": 0.9382,
+      "r2_cv_desv": 0.0072,
+      "r2_prueba": 0.9531,
+      "mae_prueba": 0.0275,
+      "rmse_prueba": 0.0346
+    },
+    "Fórmula de pesos fijos (antes)": {
+      "r2_cv_media": null,
+      "r2_cv_desv": null,
+      "r2_prueba": 0.8992,
+      "mae_prueba": 0.0401,
+      "rmse_prueba": 0.0507
+    }
+  },
+  "importancia_permutacion": {
+    "nbi": 0.5069,
+    "adultos_mayores": 0.3569,
+    "barrera_vial": 0.588,
+    "sin_atencion_reciente": 0.1204,
+    "cronicos": 0.1909
+  },
+  "kmeans": {
+    "k_elegido": 5,
+    "silueta_por_k": {
+      "3": 0.1399,
+      "4": 0.1416,
+      "5": 0.1494,
+      "6": 0.1493
+    },
+    "perfiles": [
+      {
+        "id": 0,
+        "nombre": "Énfasis en barreras de acceso vial",
+        "veredas": 525,
+        "centroide_z": {
+          "nbi": -0.08,
+          "adultos_mayores": -0.42,
+          "barrera_vial": 1.07,
+          "sin_atencion_reciente": -0.64,
+          "cronicos": -0.22
+        }
+      },
+      {
+        "id": 1,
+        "nombre": "Énfasis en tiempo sin atención extramural",
+        "veredas": 581,
+        "centroide_z": {
+          "nbi": -0.31,
+          "adultos_mayores": -0.27,
+          "barrera_vial": 0.03,
+          "sin_atencion_reciente": 1.14,
+          "cronicos": -0.4
+        }
+      },
+      {
+        "id": 2,
+        "nombre": "Énfasis en carga de enfermedad crónica",
+        "veredas": 488,
+        "centroide_z": {
+          "nbi": -0.43,
+          "adultos_mayores": -0.38,
+          "barrera_vial": -0.47,
+          "sin_atencion_reciente": -0.13,
+          "cronicos": 1.21
+        }
+      },
+      {
+        "id": 3,
+        "nombre": "Énfasis en necesidades básicas insatisfechas",
+        "veredas": 542,
+        "centroide_z": {
+          "nbi": 0.81,
+          "adultos_mayores": -0.25,
+          "barrera_vial": -0.75,
+          "sin_atencion_reciente": -0.49,
+          "cronicos": -0.51
+        }
+      },
+      {
+        "id": 4,
+        "nombre": "Énfasis en población adulta mayor",
+        "veredas": 448,
+        "centroide_z": {
+          "nbi": -0.02,
+          "adultos_mayores": 1.55,
+          "barrera_vial": 0.11,
+          "sin_atencion_reciente": -0.01,
+          "cronicos": 0.06
+        }
+      }
+    ]
+  }
+}

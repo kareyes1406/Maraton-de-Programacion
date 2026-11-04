@@ -1,0 +1,21 @@
+{
+  "_aviso": "Credenciales DE PRUEBA solo para la demostracion local. Se hashean con bcrypt al iniciar; cambiar antes de cualquier despliegue real.",
+  "usuarios": [
+    {"username": "medico.demo", "password": "Medico#2026", "nombre": "Equipo extramural (demo)", "roles": ["medico"]},
+    {"username": "coordinador.demo", "password": "Coordina#2026", "nombre": "Coordinacion APS (demo)", "roles": ["coordinador"]},
+    {"username": "auditor.demo", "password": "Audita#2026", "nombre": "Auditoria (demo)", "roles": ["auditor"]}
+  ],
+  "clientes": [
+    {
+      "client_id": "frontend-rutas",
+      "tipo": "publico",
+      "redirect_uris": ["http://localhost:8000/", "http://127.0.0.1:8000/"]
+    },
+    {
+      "client_id": "integracion-secretaria",
+      "tipo": "confidencial",
+      "client_secret": "secreto-demo-integracion-2026",
+      "scopes": ["rutas:generar"]
+    }
+  ]
+}

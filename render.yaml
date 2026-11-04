@@ -1,0 +1,46 @@
+# Blueprint de Render: despliega los dos microservicios con HTTPS automatico.
+# Render -> New -> Blueprint -> seleccionar este repositorio.
+# Si Render asigna una URL distinta a la esperada, ajustar FRONTEND_URL y AUTH_URL en el panel.
+services:
+  - type: web
+    name: maraton-rutas-auth
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn auth_service.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ENTORNO
+        value: produccion
+      - key: FRONTEND_URL
+        value: https://maraton-rutas-api.onrender.com
+      # Contrasenas de produccion (minimo 12 caracteres). Se escriben en el panel de Render, nunca en el repositorio.
+      - key: AUTH_PASSWORD_MEDICO_DEMO
+        sync: false
+      - key: AUTH_PASSWORD_COORDINADOR_DEMO
+        sync: false
+      - key: AUTH_PASSWORD_AUDITOR_DEMO
+        sync: false
+      - key: AUTH_SECRET_INTEGRACION_SECRETARIA
+        generateValue: true
+
+  - type: web
+    name: maraton-rutas-api
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn rutas_service.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ENTORNO
+        value: produccion
+      - key: AUTH_URL
+        value: https://maraton-rutas-auth.onrender.com

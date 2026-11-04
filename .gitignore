@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+auth_service/keys/
+rutas_service/data/rutas.db
+.pytest_cache/
+
+# temporales de Word / Office
+~$*
+*.tmp
+.claude/
