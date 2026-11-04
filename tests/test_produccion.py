@@ -28,8 +28,8 @@ def test_produccion_deshabilita_credenciales_demo(monkeypatch):
                      AUTH_PASSWORD_MEDICO_DEMO="Clave-Segura-2026!")
     assert set(m.USUARIOS) == {"medico.demo"}           # los demas usuarios quedan deshabilitados
     assert "integracion-secretaria" not in m.CLIENTES    # sin secreto en el entorno, el cliente no existe
-    assert "https://app.test/" in m.CLIENTES["frontend-rutas"]["redirect_uris"]
-    assert "https://app.test" in m.ALLOWED_ORIGINS
+    assert m.CLIENTES["frontend-rutas"]["redirect_uris"] == ["https://app.test/"]  # sin localhost en produccion
+    assert m.ALLOWED_ORIGINS == ["https://app.test"]
 
 
 def test_produccion_rechaza_contrasena_corta(monkeypatch):

@@ -12,7 +12,7 @@ URL_PUBLICA = os.getenv("PUBLIC_URL", os.getenv("RENDER_EXTERNAL_URL", "http://l
 AUTH_URL = os.getenv("AUTH_URL", "http://localhost:8001").rstrip("/")
 AUTH_ISSUER = os.getenv("AUTH_ISSUER", AUTH_URL)
 AUDIENCE = "rutas-api"
-_origenes = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",")
+_origenes = os.getenv("ALLOWED_ORIGINS", "" if ENTORNO == "produccion" else "http://localhost:8000,http://127.0.0.1:8000").split(",")
 ALLOWED_ORIGINS = sorted({o.strip().rstrip("/") for o in _origenes + [URL_PUBLICA] if o.strip()})
 
 if ENTORNO == "produccion" and not AUTH_URL.startswith("https://"):

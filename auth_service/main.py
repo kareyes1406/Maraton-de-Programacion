@@ -41,7 +41,7 @@ MAX_INTENTOS = 5
 BLOQUEO_SEG = 300
 # URL publica del frontend (rutas-service): se agrega como redirect_uri y origen permitido
 FRONTEND_URL = os.getenv("FRONTEND_URL", "").rstrip("/")
-_origenes = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",")
+_origenes = os.getenv("ALLOWED_ORIGINS", "" if ENTORNO == "produccion" else "http://localhost:8000,http://127.0.0.1:8000").split(",")
 ALLOWED_ORIGINS = sorted({o.strip().rstrip("/") for o in _origenes + ([FRONTEND_URL] if FRONTEND_URL else []) if o.strip()})
 
 if ENTORNO == "produccion" and not (ISSUER.startswith("https://") and FRONTEND_URL.startswith("https://")):
@@ -119,7 +119,8 @@ def _cargar_seed():
     for c in data["clientes"]:
         c = dict(c)
         if c.get("tipo") == "publico" and FRONTEND_URL:
-            c["redirect_uris"] = c.get("redirect_uris", []) + [f"{FRONTEND_URL}/"]
+            # en produccion solo se acepta la URL publica (HTTPS); localhost queda deshabilitado
+            c["redirect_uris"] = ([] if prod else c.get("redirect_uris", [])) + [f"{FRONTEND_URL}/"]
         if "client_secret" in c:
             sec = _env_secreto("AUTH_SECRET", c["client_id"]) or (None if prod else c["client_secret"])
             c.pop("client_secret")
