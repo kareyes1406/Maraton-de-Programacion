@@ -4,6 +4,11 @@ Microservicio que sugiere el **orden de visita de un equipo de salud a 5 veredas
 necesidad de atención (índice de vulnerabilidad **simulado**) y la distancia real por carretera.
 Ciclo de Investigación — Maratón de Programación con Impacto Social LCUP/CCPL 2026, Universidad de Cundinamarca.
 
+## En línea
+- Aplicación: https://maraton-rutas-api.onrender.com
+- API documentada: https://maraton-rutas-api.onrender.com/docs
+- Servidor OAuth 2.0: https://maraton-rutas-auth.onrender.com/.well-known/oauth-authorization-server
+
 ## Requisitos
 - Windows con Python 3.11 o superior
 - Conexión a internet (APIs de veredas, OSRM y mapa base; después funciona con caché)

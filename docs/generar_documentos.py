@@ -114,7 +114,7 @@ def documento_arquitectura():
         ["Consideraciones éticas y limitaciones", "Secciones VIII y IX; documento de uso de IA", "Cumple"],
         ["Microservicios y múltiples APIs", "auth-service + rutas-service; Esri/DANE, Gobernación, OSRM, OSM", "Cumple"],
         ["PostgreSQL / Redis", "PostgreSQL gestionado en la nube (auditoría y caché); SQLite en local", "Cumple"],
-        ["Nube con CI/CD", "GitHub Actions (pruebas + auditoría de dependencias) y blueprint de Render con HTTPS", "Listo"],
+        ["Nube con CI/CD", "GitHub Actions (pruebas + auditoría de dependencias) y despliegue continuo en Render (HTTPS)", "Cumple"],
     ], [1.05, 1.85, 0.5])
     d.parrafo(
         "Por delimitación del reto no se integra historia clínica ni GPS en tiempo real. El sistema no almacena datos de "
@@ -314,6 +314,13 @@ def documento_arquitectura():
         "publicadas en el repositorio: las contraseñas (mínimo 12 caracteres) y el secreto del cliente se inyectan como "
         "variables de entorno del proveedor de nube, nunca en el código. El despliegue se define como infraestructura "
         "como código (render.yaml) y tres pruebas verifican estas reglas."
+    )
+    d.parrafo(
+        ("Despliegue. ", "i"),
+        "El sistema está desplegado en Render: frontend y API en https://maraton-rutas-api.onrender.com y servidor de "
+        "autorización en https://maraton-rutas-auth.onrender.com, con PostgreSQL gestionado. Cada cambio en la rama main "
+        "dispara la construcción, ejecuta las pruebas y solo publica si todas pasan; se verificó HSTS, CSP, redirección "
+        "de HTTP a HTTPS y rechazo (401) de peticiones sin token."
     )
     # ---------------------------------------------------------------- VIII
     d.seccion("Consideraciones éticas")
