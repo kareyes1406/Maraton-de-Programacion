@@ -423,7 +423,8 @@ def documento_ia():
              "Herramientas y Evaluación Crítica", AUTORES, AFILIACION, CORREOS)
     d.resumen(
         "Este documento cumple los artículos 8 y 9 del reglamento de la maratón: declara las herramientas de inteligencia "
-        "artificial (IA) empleadas, cómo contribuyeron y una evaluación crítica de su aporte. Se usó un asistente de "
+        "artificial (IA) empleadas, cómo contribuyeron y una evaluación crítica de su aporte. Se usó Google Gemini para "
+        "revisiones de integridad y seguridad, y un asistente de "
         "programación agéntico para analizar el reglamento, investigar fuentes de datos abiertos, generar y probar el código, "
         "depurar errores y producir diagramas y documentación. Se describen los errores introducidos por la IA, cómo se "
         "detectaron y corrigieron, y cómo se aplicaron los principios del Marco Ético para la IA en Colombia (2021) tanto "
@@ -444,12 +445,14 @@ def documento_ia():
         ["Claude Code (aplicación de escritorio), modelo Claude Opus 5.5 de Anthropic",
          "Asistente de programación agéntico: lectura del reglamento, búsqueda y prueba de APIs, generación de código, "
          "pruebas, depuración en navegador, diagramas y documentos", "Medio: apoyo en código, pruebas y documentación; dirección, verificación y decisiones a cargo del equipo"],
-        ["[Agregar otras herramientas si se usaron]", "[Describir]", "[Describir]"],
+        ["Google Gemini", "Revisiones de integridad y seguridad del código (validación cruzada de los controles implementados)", "Bajo: revisiones puntuales; los cambios los decidió y verificó el equipo"],
     ], [1.1, 1.5, 0.8])
     d.parrafo(
         "El asistente operó sobre la carpeta del proyecto con permisos supervisados: ejecutó comandos, consultó las APIs "
         "públicas para verificar que existieran y respondieran, escribió los archivos y probó la aplicación en un navegador "
-        "integrado. El equipo definió el enfoque, tomó las decisiones de alcance, ejecutó la aplicación en sus equipos y "
+        "integrado. Google Gemini se usó como segunda opinión para revisar la integridad y la seguridad del código; "
+        "usar dos herramientas distintas permitió contrastar sus observaciones en lugar de confiar en una sola. "
+        "El equipo definió el enfoque, tomó las decisiones de alcance, ejecutó la aplicación en sus equipos y "
         "reportó los errores observados."
     )
 
